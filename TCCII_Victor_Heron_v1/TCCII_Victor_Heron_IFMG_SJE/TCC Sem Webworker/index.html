@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+    <div class="bg">
+        <div id="titulo">
+            <h1>TCC 2 - Sem Worker</h1>
+        </div>
+        <div id="imagem">
+            <canvas id="preview"></canvas>
+        </div>
+        <div id="conteudo">
+            <input type="file" accept="image/*" name="input" id="input">
+            <label for="input">Carregar</label>
+            <button id="button">Transformar</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        const $input = document.getElementById('input')
+        const $preview = document.getElementById('preview');
+        const previewCtx = $preview.getContext('2d');
+        const image = new Image();
+
+
+        function applyFilter() {
+            console.time()
+            const imageData = previewCtx.getImageData(0, 0, $preview.width, $preview.height)
+            for (let x = 0; x < imageData.width; x++) {
+                for (let y = 0; y < imageData.height; y++) {
+                    let index = (x + (y * imageData.width)) * 4
+                    var red = imageData.data[index]
+                    var green = imageData.data[index + 1]
+                    var blue = imageData.data[index + 2]
+                    var gray = (red + green + blue) / 3;
+
+                    imageData.data[index] = gray;
+                    imageData.data[index + 1] = gray;
+                    imageData.data[index + 2] = gray;
+                }
+            }
+            previewCtx.putImageData(imageData, 0, 0)
+            console.timeEnd()
+        }
+        $input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            createImageBitmap(file)
+                .then((bitmap) => {
+                    $preview.width = bitmap.width;
+                    $preview.height = bitmap.height;
+                    previewCtx.drawImage(bitmap, 0, 0);
+                });
+        });
+        document.getElementById("button").addEventListener("click", () => {
+            applyFilter()
+        })
+    </script>
+</body>
+
+</html>

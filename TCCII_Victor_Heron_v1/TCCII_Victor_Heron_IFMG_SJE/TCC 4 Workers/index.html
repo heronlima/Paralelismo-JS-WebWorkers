@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>TCC-II</title>
+</head>
+
+<body>
+
+    <div class="bg">
+        <div id="titulo">
+            <h1>TCC 2 - 4 Workers</h1>
+        </div>
+        <div id="imagem">
+            <canvas id="preview"></canvas>
+        </div>
+        <div id="conteudo">
+            <input type="file" accept="image/*" name="input" id="input">
+            <label for="input">Carregar</label>
+            <button id="button">Transformar</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        const $input = document.getElementById('input')
+        const $preview = document.getElementById('preview');
+        const previewCtx = $preview.getContext('2d');
+        const image = new Image();
+
+
+        const worker1 = new Worker('worker.js')
+        const worker2 = new Worker('worker.js')
+        const worker3 = new Worker('worker.js')
+        const worker4 = new Worker('worker.js')
+
+        worker1.addEventListener('message', (d) => {
+            const imageData = d.data
+            previewCtx.putImageData(imageData, 0, 0)
+            worker1.terminate()
+        })
+
+        worker2.addEventListener('message', (d) => {
+            const imageData = d.data
+            previewCtx.putImageData(imageData, $preview.width / 2, 0)
+            worker2.terminate()
+        })
+        worker3.addEventListener('message', (d) => {
+            const imageData = d.data
+            previewCtx.putImageData(imageData, 0, $preview.height / 2)
+            worker3.terminate()
+        })
+        worker4.addEventListener('message', (d) => {
+            const imageData = d.data
+            previewCtx.putImageData(imageData, $preview.width / 2, $preview.height / 2)
+            worker4.terminate()
+            console.timeEnd()
+        })
+
+        function applyFilter() {
+            console.time()
+            const imageData1 = previewCtx.getImageData(0, 0, $preview.width / 2, $preview.height / 2)
+            const imageData2 = previewCtx.getImageData($preview.width / 2, 0, $preview.width / 2, $preview.height / 2)
+            const imageData3 = previewCtx.getImageData(0, $preview.height / 2, $preview.width / 2, $preview.height / 2)
+            const imageData4 = previewCtx.getImageData($preview.width / 2, $preview.height / 2, $preview.width / 2, $preview.height / 2)
+            worker1.postMessage(imageData1);
+            worker2.postMessage(imageData2);
+            worker3.postMessage(imageData3);
+            worker4.postMessage(imageData4);
+        }
+
+        $input.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            createImageBitmap(file)
+                .then((bitmap) => {
+                    $preview.width = bitmap.width;
+                    $preview.height = bitmap.height;
+                    previewCtx.drawImage(bitmap, 0, 0);
+                });
+        });
+        document.getElementById("button").addEventListener("click", () => {
+            applyFilter()
+        })
+    </script>
+
+</body>
+
+</html>
